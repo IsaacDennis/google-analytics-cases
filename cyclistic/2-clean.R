@@ -1,0 +1,12 @@
+library("DBI")
+library("RSQLite")
+
+tripdb <- dbConnect(RSQLite::SQLite(), "tripdata.db")
+dbSendQuery(tripdb, "CREATE TABLE IF NOT EXISTS trips_cleaned AS SELECT * FROM trips")
+# Delete trips lasting less than 1 minute (60 seconds)
+affected <- dbExecute(tripdb, "DELETE FROM trips_cleaned WHERE (ended_at - started_at) < 60")
+print(sprintf("%d trips lasting less than 1 minute were deleted.\n", affected))
+# Delete trips lasting more than 1 day (86400 seconds)
+affected <- dbExecute(tripdb, "DELETE FROM trips_cleaned WHERE (ended_at - started_at) > 86400")
+print(sprintf("%d trips lasting more than 1 day were deleted.\n", affected))
+dbDisconnect(tripdb)
