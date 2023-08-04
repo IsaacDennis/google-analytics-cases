@@ -12,6 +12,15 @@ statistical_summary <- tripdf %>%
         duration_mean = round(mean(duration) / 60),
     )
 
-print(statistical_summary)
+most_used_end_stations <- tripdf %>%
+    drop_na(end_station_name) %>%
+    count(member_casual, end_station_name, sort = TRUE) %>%
+    group_by(member_casual) %>%
+    slice(1:5)
 
+print(statistical_summary)
+print(most_used_end_stations)
+
+dir.create(file.path("result"))
+write_csv(most_used_end_stations, "result/most-used-end-stations.csv")
 dbDisconnect(tripdb)
