@@ -18,9 +18,20 @@ most_used_end_stations <- tripdf %>%
     group_by(member_casual) %>%
     slice(1:5)
 
+trips_by_month <- tripdf %>%
+    select(-started_at) %>%
+    mutate(
+        ended_at = format(as.Date(as.POSIXct(ended_at, tz = "UTC")), "%Y-%m")
+    ) %>%
+    group_by(member_casual, ended_at) %>%
+    summarise(trips = n())
+
+
 print(statistical_summary)
 print(most_used_end_stations)
+print(trips_by_month)
 
 dir.create(file.path("result"))
 write_csv(most_used_end_stations, "result/most-used-end-stations.csv")
+write_csv(trips_by_month, "result/trips-by-month.csv")
 dbDisconnect(tripdb)
