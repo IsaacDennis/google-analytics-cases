@@ -26,12 +26,18 @@ trips_by_month <- tripdf %>%
     group_by(member_casual, ended_at) %>%
     summarise(trips = n())
 
-
+trips_by_weekday <- tripdf %>%
+    mutate(weekday = wday(as.Date(as.POSIXct(ended_at, tz = "UTC")), label = TRUE, abbr = FALSE)) %>%
+    group_by(member_casual, weekday) %>%
+    summarise(trips = n())
+    
 print(statistical_summary)
 print(most_used_end_stations)
 print(trips_by_month)
+print(trips_by_weekday)
 
 dir.create(file.path("result"))
 write_csv(most_used_end_stations, "result/most-used-end-stations.csv")
 write_csv(trips_by_month, "result/trips-by-month.csv")
+write_csv(trips_by_weekday, "result/trips-by-weekday.csv")
 dbDisconnect(tripdb)
