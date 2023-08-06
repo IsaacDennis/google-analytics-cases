@@ -27,7 +27,7 @@ trips_by_month <- tripdf %>%
     summarise(trips = n())
 
 trips_by_weekday <- tripdf %>%
-    mutate(weekday = wday(as.Date(as.POSIXct(ended_at, tz = "UTC")), label = TRUE, abbr = FALSE)) %>%
+    mutate(weekday = wday(as.Date(as.POSIXct(ended_at, tz = "UTC")), label = TRUE, abbr = FALSE, locale = "en_US")) %>%
     group_by(member_casual, weekday) %>%
     summarise(trips = n())
     
