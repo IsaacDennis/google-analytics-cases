@@ -30,7 +30,13 @@ trips_by_weekday <- tripdf %>%
     mutate(weekday = wday(as.Date(as.POSIXct(ended_at, tz = "UTC")), label = TRUE, abbr = FALSE, locale = "en_US")) %>%
     group_by(member_casual, weekday) %>%
     summarise(trips = n())
-    
+
+bicycles_by_user <- tripdf %>%
+    filter(rideable_type != "docked_bike") %>%
+    group_by(member_casual, rideable_type) %>%
+    summarise(trips = n())
+
+
 print(statistical_summary)
 print(most_used_end_stations)
 print(trips_by_month)
@@ -40,4 +46,5 @@ dir.create(file.path("result"))
 write_csv(most_used_end_stations, "result/most-used-end-stations.csv")
 write_csv(trips_by_month, "result/trips-by-month.csv")
 write_csv(trips_by_weekday, "result/trips-by-weekday.csv")
+write_csv(bicycles_by_user, "result/bicycles-by-user.csv")
 dbDisconnect(tripdb)
