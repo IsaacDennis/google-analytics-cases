@@ -2,6 +2,7 @@ library("ggplot2")
 library("tidyverse")
 trips_by_month <- read_csv("result/trips-by-month.csv")
 trips_by_weekday <- read_csv("result/trips-by-weekday.csv")
+bicycles_by_user <- read_csv("result/bicycles-by-user.csv")
 
 trips_by_month_plot <- ggplot(
     trips_by_month,
@@ -14,5 +15,13 @@ trips_by_weekday_plot <- ggplot(
 ) +
     geom_bar(position = "dodge", stat = "identity")
 
+bicycles_by_user_plot <- ggplot(
+    bicycles_by_user,
+    mapping = aes(fill = rideable_type, x = member_casual, y = trips)
+) +
+    geom_bar(position = "dodge", stat = "identity")
+
+    
 ggsave("plots/trips-by-month.png", trips_by_month_plot, width = 10, height = 5)
 ggsave("plots/trips-by-weekday.png", trips_by_weekday_plot, width = 10, height = 5)
+ggsave("plots/bicycles-by-user.png", bicycles_by_user_plot, width = 10, height = 5)
