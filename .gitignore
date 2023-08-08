@@ -1,2 +1,5 @@
 cyclistic/data/
+cyclistic/plots/
+cyclistic/result/
 cyclistic/tripdata.db
+cyclistic/.Rhistory
