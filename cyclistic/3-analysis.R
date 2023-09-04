@@ -54,6 +54,7 @@ print(trips_by_weekday)
 print(end_stations_by_month)
 
 dir.create(file.path("result"))
+write_csv(statistical_summary, "result/statistical-summary.csv")
 write_csv(most_used_end_stations, "result/most-used-end-stations.csv")
 write_csv(trips_by_month, "result/trips-by-month.csv")
 write_csv(trips_by_weekday, "result/trips-by-weekday.csv")
