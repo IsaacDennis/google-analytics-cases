@@ -19,7 +19,8 @@ bicycles_by_user_plot <- ggplot(
     bicycles_by_user,
     mapping = aes(fill = rideable_type, x = member_casual, y = trips)
 ) +
-    geom_bar(position = "dodge", stat = "identity")
+    geom_bar(position = "dodge", stat = "identity") +
+    labs(title = "Usage by user and bicycle type", y = "trips", x = "customer type")
 
     
 ggsave("plots/trips-by-month.png", trips_by_month_plot, width = 10, height = 5)
