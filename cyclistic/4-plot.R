@@ -4,6 +4,9 @@ trips_by_month <- read_csv("result/trips-by-month.csv")
 trips_by_weekday <- read_csv("result/trips-by-weekday.csv")
 bicycles_by_user <- read_csv("result/bicycles-by-user.csv")
 
+trips_by_weekday <- trips_by_weekday %>%
+    mutate(weekday = factor(weekday, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")))
+
 trips_by_month_plot <- ggplot(
     trips_by_month,
     mapping = aes(fill = member_casual, x = ended_at, y = trips)) +
