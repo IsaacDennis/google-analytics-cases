@@ -1,0 +1,135 @@
+#+title: Cyclistic - Estudo de Caso Google Data Analytics
+#+author: Isaac Dennis
+#+options: ^:nil num:nil
+* Cyclistic
+** Introdução
+** Ferramentas e organização do projeto
+Devido à grande quantidade de registros dos dados da Cyclistic (5779444 viagens), um banco de dados embutido ([[https://www.sqlite.org/index.html][SQLite]]) foi utilizado. A [[https://www.r-project.org/][linguagem R]] foi usada para interagir com o banco de dados através da interface [[https://rsqlite.r-dbi.org/][RSQLite]] e para realizar a análise. O código foi dividido em 5 arquivos:
+- 0-unzip.R: cria o diretório "data" e descomprime o arquivo .zip (que contém os dados da Cyclistic).
+- 1-create-db.R: cria o banco de dados "tripdata.db" e a tabela "trips", que contém os dados da Cyclistic.
+- 2-clean.R: limpeza de dados.
+- 3-analysis.R: análise dos dados, escrevendo os arquivos CSV de resultado no diretório "result".
+- 4-plot.R: criação dos gráficos, escrevendo os arquivos de imagem no diretório "plots".  
+** Tarefa de negócios
+Compreender como os passageiros anuais e casuais diferem, a fim de criar estratégias de marketing para converter passageiros casuais em membros anuais.
+** Partes interessadas (stakeholders)
+1. Lily Moreno: diretora de marketing
+2. Equipe executiva da Cyclistic: equipe que aprovará ou não o programa de marketing recomendado
+3. Equipe de análise de marketing   
+** Fontes de dados utilizadas
+Para a realização da análise, os dados de trajetos da Cyclistic (na realidade, dados da Divvy Bikes, uma iniciativa do Departamento de Transporte de Chicago) dos últimos 12 meses (julho de 2022 a junho de 2023) foram baixados e utilizados. Estes estão disponíveis em formato CSV (comma-separated values), cujos valores são organizados em linhas (um registro) e colunas (os atributos). A lista a seguir contém os atributos dos trajetos:
+- ride_id: identificação da viagem
+- rideable_type: tipo da bicicleta - clássica ou elétrica
+- started_at: horário de início da viagem
+- ended_at: horário de fim da viagem
+- start_station_name: estação de início da viagem
+- start_station_id: identificação da estação de início
+- end_station_name: estação de fim da viagem
+- end_station_id: identificação da estação de fim
+- start_lat: latitude do início da viagem
+- start_lng: longitude do início da viagem
+- end_lat: latitude do fim da viagem
+- end_lng: longitude do fim da viagem
+- member_casual: tipo de cliente da viagem - casual ou membro (anual)
+** Manipulação e limpeza dos dados  
+Após o download dos dados dos últimos 12 meses, os arquivos .csv foram reunidos e compactados em um arquivo zip para economia de espaço no disco de armazenamento e no repositório Git. Este arquivo zip foi, então, descompactado e todos os registros de cada arquivo foram inseridos no banco de dados SQLite na tabela ~trips~ ([[https://github.com/IsaacDennis/google-analytics-cases/blob/master/cyclistic/1-create-db.R][1-create-db.R]]). Este banco de dados foi utilizado para realizar consultas manualmente a fim de averiguar discrepâncias. Os seguintes erros foram encontrados:
+1. Viagens com menos de 60 segundos: viagens potencialmente falsas ou usuários tentando estacionar uma bicicleta - 149372 registros excluídos
+2. Viagens com mais de 86400 segundos (1 dia): 5087 registros excluídos
+3. Viagens cuja localização não foi alterada (latitude e longitude iniciais iguais às finais): 293651 registros excluídos
+Em vez de realizar a limpeza diretamente na tabela ~trips~, a tabela ~trips_cleaned~ foi criada, de modo a manter os dados originais no banco de dados ([[https://github.com/IsaacDennis/google-analytics-cases/blob/master/cyclistic/2-clean.R][2-clean.R]]).
+** Análise
+Ainda após a limpeza, os dados contém valores extremos. A seguinte consulta SQL exibe a duração das 10 viagens mais longas, que alcançam um tempo próximo a um dia:
+#+begin_src sqlite :db ./tripdata.db :colnames yes :exports both :cache yes
+SELECT ride_id, rideable_type, (ended_at - started_at) AS duration
+	FROM trips_cleaned
+	ORDER BY duration DESC
+	LIMIT 10;
+#+end_src
+
+#+RESULTS[03046f5d4c6a55e52731c4e0c4e182e385d38db7]:
+| ride_id          | rideable_type | duration (s) |
+|------------------+---------------+--------------|
+| B3E8F81EBA9DC2D7 | classic_bike  |      86396.0 |
+| B9B1C7E60F04E51E | classic_bike  |      86395.0 |
+| 5C76DFE7ED12537E | classic_bike  |      86394.0 |
+| F6FF74390ED7B799 | classic_bike  |      86390.0 |
+| C3E2A264DD5EB0C0 | classic_bike  |      86379.0 |
+| 545671A445BDEAA7 | docked_bike   |      86374.0 |
+| 99961BFCCFF02177 | docked_bike   |      86362.0 |
+| E26C2BB8C5CA4446 | docked_bike   |      86343.0 |
+| 98C7100253B945BC | docked_bike   |      86314.0 |
+| 175623AF52567043 | docked_bike   |      86255.0 |
+
+Devido a isso, a mediana foi utilizada como medida de tendência central. A tabela a seguir exibe a disparidade entre a mediana e a média dos dados (para uma explicação estatística do uso da mediana, leia "Introdução à Estatística Moderna", de Mine Çetinkaya-Rundel e Johanna Hardin, Capítulo 5, disponível on-line gratuitamente)[fn:1].
+| membro_casual | mediana da duração (min) | média da duração (min) |
+|---------------+--------------------------+------------------------|
+| casual        |                       12 |                     21 |
+| member        |                        9 |                     12 |
+
+Enquanto a média exibe uma variação de 75% na duração da viagem dos clientes casuais em relação aos membros, a mediana exibe uma variação de 33%.
+
+*** Quantidade de viagens por mês
+#+ATTR_HTML: :width 960px
+[[./plots/trips-by-month.png]]
+
+Tanto os clientes do tipo membro como do tipo casual realizam mais viagens nos meses de junho, julho, e agosto. Estes três meses são marcados pelo verão de Chicago, com temperatura elevada, com mínima de 21 °C e máxima de 28 °C.
+*** Quantidade de viagens por dia da semana
+#+ATTR_HTML: :width 960px
+[[./plots/trips-by-weekday.png]]
+
+A quantidade de viagens dos clientes do tipo membro alcançam um pico na quarta-feira, e o mínimo no domingo. Ao contrário dos clientes do tipo membro, os clientes casuais atingem um pico nos dias de final de semana (sábado e domingo) e o mínimo na segunda-feira. Em todos os dias da semana, os clientes do tipo membro realizam mais viagens do que os clientes do tipo casual.
+
+*** Duração mediana de viagens por dia da semana
+#+ATTR_HTML: :width 960px
+[[./plots/trip-duration-by-weekday.png]]
+
+A duração das viagens do clientes de ambos os tipos alcançam um pico no sábado e domingo, com o tipo casual realizando viagens de maior tempo. Os clientes do tipo membro apresentam pouca variação na duração da viagem (isto é, mais consistência) nos dias úteis (segunda a sexta).
+
+*** Uso de bicicletas por cliente
+#+ATTR_HTML: :width 960px
+[[./plots/bicycles-by-user.png]]
+
+Ambos tipos de cliente (casual e membro) têm preferência por bicicletas elétricas.
+
+*** Estações de destino mais usadas
+A tabela a seguir exibe as 5 estações mais usadas de cada tipo de cliente.
+
+| membro_casual | estação de destino                 | viagens |
+|---------------+------------------------------------+---------|
+| casual        | Streeter Dr & Grand Ave            |   54454 |
+| casual        | DuSable Lake Shore Dr & Monroe St  |   27721 |
+| casual        | Michigan Ave & Oak St              |   24756 |
+| casual        | Millennium Park                    |   24635 |
+| casual        | DuSable Lake Shore Dr & North Blvd |   23778 |
+|---------------+------------------------------------+---------|
+| member        | Kingsbury St & Kinzie St           |   24859 |
+| member        | Clark St & Elm St                  |   23060 |
+| member        | Clinton St & Washington Blvd       |   22888 |
+| member        | Wells St & Concord Ln              |   22231 |
+| member        | University Ave & 57th St           |   21016 |
+
+Conforme a tabela anterior, a estação de destino mais usada pelos clientes casuais é a Streeter Dr & Grand Ave, próxima ao Cais Naval de Chicago, um dos pontos turísticos mais visitados da cidade. As estações "DuSable Lake Shore" e Millenium Park estão próximas ao Millenium Park, um dos dez parques públicos mais visitados dos Estados Unidos, com 25 milhões de visitantes anuais[fn:2]. A estação Michigan Ave & Oak St está próxima da 900 North Michigan, um arranha-céu que contém um shopping center, e ao Museu de Arte Contemporânea de Chicago.
+
+A estação mais usada pelos clientes anuais é a Kingsbury St & Kinzie St, próxima ao "Merchandise Mart", um dos maiores edifícios comerciais do mundo e o maior dos Estados Unidos (possuído por iniciativa privada)[fn:3], visitado diariamente por 30.000 pessoas, e ao "Loop", o centro comercial de Chicago. A estação Clinton St & Washington Boulevard está ao lado da Ogilvie Transportation Center, uma estação de trem suburbano da Metra conectada ao 500 West Madison (Accenture Tower), um arranha-céu comercial.
+
+A estação University Ave & 57th St está próxima à Universidade de Chicago, cujas faculdades de negócio e direito estão entre as três melhores dos Estados Unidos, segundo um ranking da Bloomberg.[fn:4]
+
+Os resultados da análise indicam que os clientes casuais utilizam o serviço de compartilhamento de bicicletas para diversão, dado o aumento no uso durante os finais de semana e à proximidade das estações de destino com localizações turísticas, enquanto os clientes membros utilizam o serviço para irem ao trabalho ou faculdade, dada a maior consistência nas durações de viagens durante os dias úteis e à proximidade a edifícios comerciais ou universidades.
+* Recomendações com base na análise
+** Oferecer promoções de assinatura anual durante o verão
+Dado que os meses de junho, julho e agosto são marcados pelo verão em Chicago e a demanda de viagens aumenta para ambos os tipos de clientes, poderia se concentrar em atrair clientes casuais durante esse período, criando uma promoção de assinatura de verão que ofereça um desconto significativo na primeira assinatura anual para os clientes casuais que experimentam o serviço durante esses meses. Isso incentivará os clientes casuais a se comprometerem com uma assinatura anual enquanto desfrutam do clima agradável e das viagens de bicicleta. Um exemplo real semelhante pode ser visto na campanha "Summer of Citibike" da Citi Bike em Nova York, que ofereceu descontos sazonais para atrair mais assinantes durante os meses de verão.
+
+** Implementar programa de fidelidade com recompensas incrementais
+Para incentivar os clientes casuais a se tornarem membros, poderia-se criar um programa de fidelidade que recompense os clientes com base na frequência de uso. Os clientes casuais que usam o serviço com mais regularidade, especialmente nos fins de semana, poderiam ganhar pontos ou descontos progressivos que os aproximem de uma assinatura anual. Isso aproveita o comportamento de pico dos clientes casuais nos finais de semana e os encoraja a continuar a usar o serviço. Um exemplo real é o programa de fidelidade "Starbucks Rewards", onde os clientes ganham estrelas com cada compra, levando a recompensas como bebidas gratuitas. A ideia é criar um sistema de recompensa similar adaptado para o sistema de compartilhamento de bicicletas.
+
+** Personalizar ofertas de assinatura com base na localização do cliente
+Dado que os clientes casuais preferem estações próximas a pontos turísticos e os membros preferem estações próximas a edifícios comerciais, recomenda-se personalizar as ofertas de assinatura com base na localização do cliente. Ao rastrear o histórico de uso do cliente e suas preferências de destino, poderia se oferecer assinaturas com benefícios adicionais, como descontos em viagens para locais próximos aos pontos turísticos favoritos do cliente ou estações convenientes próximas aos seus locais de trabalho. Isso tornará a assinatura mais atraente e relevante para cada tipo de cliente, aumentando a probabilidade de conversão. Um exemplo real de personalização de ofertas com base na localização é o aplicativo de entrega de comida Uber Eats, que oferece promoções e descontos com base na proximidade do cliente a restaurantes parceiros.
+* Footnotes
+
+[fn:4] https://web.archive.org/web/20121117155858/http://www.businessweek.com/articles/2012-11-15/the-complete-2012-business-schools-ranking
+
+[fn:3] https://www.themart.com/about/
+
+[fn:2] /Chicago Tribute/. "Millennium Park is new top Midwest visitor destination, high-tech count finds". https://www.chicagotribune.com/entertainment/ct-millennium-park-visitors-ent-0406-20170406-column.html.
+
+[fn:1] Çetinkaya-Rundel, Mine, e Johanna Hardin. 2021. /Introduction to Modern Statistics./ https://openintro-ims.netlify.app.
