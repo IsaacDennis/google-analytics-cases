@@ -3,6 +3,9 @@
 #+options: ^:nil num:nil
 * Cyclistic
 ** Introdução
+Cyclistic é uma empresa de compartilhamento de bicicletas localizada em Chicago, que atende a dois tipos de clientes distintos. Aqueles que compram passes únicos ou de dia inteiro são chamados de ciclistas ocasionais, enquanto aqueles que assinam anualmente são conhecidos como membros. Os analistas financeiros da Cyclistic concluíram que os membros anuais geram lucros consideravelmente maiores em comparação com os ciclistas ocasionais. O diretor de marketing está firmemente convencido de que o sucesso futuro da empresa depende da maximização do número de membros anuais.
+
+A equipe de análise de marketing tem como objetivo obter insights sobre como os ciclistas ocasionais e os membros anuais utilizam as bicicletas da Cyclistic de maneira diferente. Com esses insights, a equipe planeja desenvolver uma nova estratégia de marketing para converter os ciclistas ocasionais em membros anuais. As principais partes interessadas neste projeto incluem o diretor de marketing da Cyclistic e a equipe executiva da empresa. A equipe de análise de marketing da Cyclistic desempenha um papel secundário nessa iniciativa.
 ** Ferramentas e organização do projeto
 Devido à grande quantidade de registros dos dados da Cyclistic (5779444 viagens), um banco de dados embutido ([[https://www.sqlite.org/index.html][SQLite]]) foi utilizado. A [[https://www.r-project.org/][linguagem R]] foi usada para interagir com o banco de dados através da interface [[https://rsqlite.r-dbi.org/][RSQLite]] e para realizar a análise. O código foi dividido em 5 arquivos:
 - 0-unzip.R: cria o diretório "data" e descomprime o arquivo .zip (que contém os dados da Cyclistic).
@@ -36,7 +39,9 @@ Após o download dos dados dos últimos 12 meses, os arquivos .csv foram reunido
 1. Viagens com menos de 60 segundos: viagens potencialmente falsas ou usuários tentando estacionar uma bicicleta - 149372 registros excluídos
 2. Viagens com mais de 86400 segundos (1 dia): 5087 registros excluídos
 3. Viagens cuja localização não foi alterada (latitude e longitude iniciais iguais às finais): 293651 registros excluídos
-Em vez de realizar a limpeza diretamente na tabela ~trips~, a tabela ~trips_cleaned~ foi criada, de modo a manter os dados originais no banco de dados ([[https://github.com/IsaacDennis/google-analytics-cases/blob/master/cyclistic/2-clean.R][2-clean.R]]).
+Em vez de realizar a limpeza diretamente na tabela ~trips~, a tabela ~trips_cleaned~ foi criada, de modo a manter os dados originais no banco de dados ([[https://github.com/IsaacDennis/google-analytics-cases/blob/master/cyclistic/2-clean.R][2-clean.R]]). Dois novos campos foram criados:
+- duration: duração da viagem (diferença entre ended_at e started_at)
+- weekday: dia da semana em que a viagem terminou (em inglês)
 ** Análise
 Ainda após a limpeza, os dados contém valores extremos. A seguinte consulta SQL exibe a duração das 10 viagens mais longas, que alcançam um tempo próximo a um dia:
 #+begin_src sqlite :db ./tripdata.db :colnames yes :exports both :cache yes
