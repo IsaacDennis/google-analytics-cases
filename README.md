@@ -7,3 +7,6 @@ This repository contains the code used by me to analyze data from the _Google Da
 > Bellabeat case study and Cyclistic report in English are currently unavailable.
 
 [Cyclistic (pt-br)]: https://isaacdennis.tech/pt/projetos/estudos-de-caso-google/cyclistic.html
+[Cyclistic (en)]: https://isaacdennis.tech
+[Bellabeat (en)]: https://isaacdennis.tech
+[Bellabeat (pt-br)]: https://isaacdennis.tech
