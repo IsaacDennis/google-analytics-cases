@@ -4,7 +4,7 @@ _**[Cyclistic (en)]** | **[Cyclistic (pt-br)]** | **[Bellabeat (en)]** | **[Bell
 
 This repository contains the code used by me to analyze data from the _Google Data Analytics Professional Certificate_ case studies.
 > **Warning**
-> Bellabeat case study and Cyclistic report in English are currently unavailable.
+> Bellabeat case study is currently unavailable.
 
 [Cyclistic (pt-br)]: https://isaacdennis.tech/pt/projetos/estudos-de-caso-google/cyclistic.html
 [Cyclistic (en)]: https://isaacdennis.tech
